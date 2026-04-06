@@ -171,7 +171,7 @@ const CARRIERS = [
   'Tokio Marine',
 ]
 
-const INSURANCE_TYPES = ['Cyber', 'E&O', 'D&O', 'General Liability', 'Property']
+const INSURANCE_TYPES = ['Cyber']
 
 const YES_NO_QUESTIONS = [
   'Is MFA enforced for email and remote access?',
