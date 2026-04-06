@@ -163,12 +163,8 @@ const COVERAGES = [
 const CARRIERS = [
   'Beazley',
   'Berkley',
-  'CFC',
-  'Chubb',
-  'Coalition',
   'Mosaic',
   'Ryan',
-  'Tokio Marine',
 ]
 
 const INSURANCE_TYPES = ['Cyber']
@@ -203,6 +199,7 @@ function ReviewRow({ label, value }) {
 
 export default function AddSubmissionModal({ customer, onClose, onSubmit }) {
   const [step, setStep] = useState(1)
+  const [showOptional, setShowOptional] = useState(false)
 
   const [form, setForm] = useState({
     insuranceType: '',
@@ -212,6 +209,10 @@ export default function AddSubmissionModal({ customer, onClose, onSubmit }) {
     limit: '',
     retention: '',
     coverages: [],
+    optionalCarriers: [],
+    optionalLimit: '',
+    optionalRetention: '',
+    optionalCoverages: [],
     companyName: customer?.company || '',
     yearEstablished: '',
     address: customer?.companyProfile?.address || '',
@@ -254,7 +255,7 @@ export default function AddSubmissionModal({ customer, onClose, onSubmit }) {
     form.carriers.length > 0 &&
     !!form.limit &&
     !!form.retention &&
-    (form.carriers.length === 0 || form.coverages.length > 0)
+    form.coverages.length > 0
 
   // Step 2 validation
   const step2Valid =
@@ -345,9 +346,9 @@ export default function AddSubmissionModal({ customer, onClose, onSubmit }) {
 
               <Field label="Carriers to Submit To">
                 <div className="border border-gray-200 rounded-lg p-1">
-                  <div className="grid grid-cols-2">
-                    {CARRIERS.map((c, i) => (
-                      <label key={c} className={`flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 cursor-pointer rounded ${i % 2 === 0 ? 'border-r border-gray-100' : ''}`}>
+                  <div>
+                    {CARRIERS.map((c) => (
+                      <label key={c} className="flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 cursor-pointer rounded">
                         <input
                           type="checkbox"
                           checked={form.carriers.includes(c)}
@@ -361,21 +362,25 @@ export default function AddSubmissionModal({ customer, onClose, onSubmit }) {
                 </div>
               </Field>
 
-              <div className="grid grid-cols-2 gap-4">
-                <Field label="Limit">
-                  <CurrencyInput value={form.limit} onChange={v => set('limit', v)} placeholder="e.g. $5,000,000" className={inputClass} />
-                </Field>
-                <Field label="Retention">
-                  <CurrencyInput value={form.retention} onChange={v => set('retention', v)} placeholder="e.g. $10,000" className={inputClass} />
-                </Field>
+              <div className="space-y-4">
+                <div className="w-1/2 pr-2">
+                  <Field label="Limit">
+                    <CurrencyInput value={form.limit} onChange={v => set('limit', v)} placeholder="e.g. $5,000,000" className={inputClass} />
+                  </Field>
+                </div>
+                <div className="w-1/2 pr-2">
+                  <Field label="Retention">
+                    <CurrencyInput value={form.retention} onChange={v => set('retention', v)} placeholder="e.g. $10,000" className={inputClass} />
+                  </Field>
+                </div>
               </div>
 
-              {form.carriers.length > 0 && (
+              {true && (
                 <Field label="Coverages">
                   <div className="border border-gray-200 rounded-lg p-1">
-                    <div className="grid grid-cols-2">
-                      {COVERAGES.map((c, i) => (
-                        <label key={c} className={`flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 cursor-pointer rounded ${i % 2 === 0 ? 'border-r border-gray-100' : ''}`}>
+                    <div>
+                      {COVERAGES.map((c) => (
+                        <label key={c} className="flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 cursor-pointer rounded">
                           <input
                             type="checkbox"
                             checked={form.coverages.includes(c)}
@@ -388,6 +393,80 @@ export default function AddSubmissionModal({ customer, onClose, onSubmit }) {
                     </div>
                   </div>
                 </Field>
+              )}
+
+              {!showOptional && (
+                <button
+                  type="button"
+                  onClick={() => setShowOptional(true)}
+                  className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 transition-colors"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                  Add Optional Request
+                </button>
+              )}
+
+              {showOptional && (
+                <div className="border border-dashed border-gray-300 rounded-lg p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium text-gray-700">Optional Request</p>
+                    <button
+                      type="button"
+                      onClick={() => { setShowOptional(false); set('optionalCarriers', []); set('optionalLimit', ''); set('optionalRetention', ''); set('optionalCoverages', []) }}
+                      className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  <Field label="Carriers">
+                    <div className="border border-gray-200 rounded-lg p-1">
+                      <div>
+                        {CARRIERS.map((c) => (
+                          <label key={c} className="flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 cursor-pointer rounded">
+                            <input
+                              type="checkbox"
+                              checked={form.optionalCarriers.includes(c)}
+                              onChange={() => toggleCheck('optionalCarriers', c)}
+                              className="w-4 h-4 accent-gray-800 rounded"
+                            />
+                            <span className="text-sm text-gray-700">{c}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  </Field>
+                  <div className="space-y-4">
+                    <div className="w-1/2 pr-2">
+                      <Field label="Limit">
+                        <CurrencyInput value={form.optionalLimit} onChange={v => set('optionalLimit', v)} placeholder="e.g. $5,000,000" className={inputClass} />
+                      </Field>
+                    </div>
+                    <div className="w-1/2 pr-2">
+                      <Field label="Retention">
+                        <CurrencyInput value={form.optionalRetention} onChange={v => set('optionalRetention', v)} placeholder="e.g. $10,000" className={inputClass} />
+                      </Field>
+                    </div>
+                  </div>
+                  <Field label="Coverages">
+                    <div className="border border-gray-200 rounded-lg p-1">
+                      <div>
+                        {COVERAGES.map((c) => (
+                          <label key={c} className="flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 cursor-pointer rounded">
+                            <input
+                              type="checkbox"
+                              checked={form.optionalCoverages.includes(c)}
+                              onChange={() => toggleCheck('optionalCoverages', c)}
+                              className="w-4 h-4 accent-gray-800 rounded"
+                            />
+                            <span className="text-sm text-gray-700">{c}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  </Field>
+                </div>
               )}
             </>}
           </div>
