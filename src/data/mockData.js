@@ -63,7 +63,7 @@ export const customers = [
         },
         {
           id: 'q2',
-          carrier: 'Tokio Marine',
+          carrier: 'RLI',
           logo: null,
           market: 'Non-Admitted | A.M. Best Rating: A (Excellent)',
           coverageLimit: '$30,000,000',

@@ -161,7 +161,7 @@ const COVERAGES = [
 ]
 
 const CARRIERS = [
-  'Beazley',
+  'RLI',
   'Berkley',
   'Mosaic',
   'Ryan',
@@ -199,7 +199,6 @@ function ReviewRow({ label, value }) {
 
 export default function AddSubmissionModal({ customer, onClose, onSubmit }) {
   const [step, setStep] = useState(1)
-  const [showOptional, setShowOptional] = useState(false)
 
   const [form, setForm] = useState({
     insuranceType: '',
@@ -208,11 +207,10 @@ export default function AddSubmissionModal({ customer, onClose, onSubmit }) {
     carriers: [...CARRIERS],
     limit: '',
     retention: '',
+    waitingPeriod: '',
+    priorActsDate: '',
     coverages: [],
-    optionalCarriers: [],
-    optionalLimit: '',
-    optionalRetention: '',
-    optionalCoverages: [],
+    optionals: [],
     companyName: customer?.company || '',
     yearEstablished: '',
     address: customer?.companyProfile?.address || '',
@@ -248,6 +246,28 @@ export default function AddSubmissionModal({ customer, onClose, onSubmit }) {
     setForm(f => ({ ...f, [field]: value }))
   }
 
+  function addOptional() {
+    setForm(f => ({ ...f, optionals: [...f.optionals, { carriers: [...CARRIERS], limit: '', retention: '', waitingPeriod: '', priorActsDate: '', targetPremium: '', coverages: [] }] }))
+  }
+
+  function removeOptional(index) {
+    setForm(f => ({ ...f, optionals: f.optionals.filter((_, i) => i !== index) }))
+  }
+
+  function setOptional(index, field, value) {
+    setForm(f => ({ ...f, optionals: f.optionals.map((o, i) => i === index ? { ...o, [field]: value } : o) }))
+  }
+
+  function toggleOptionalCheck(index, field, value) {
+    setForm(f => ({
+      ...f,
+      optionals: f.optionals.map((o, i) => i === index
+        ? { ...o, [field]: o[field].includes(value) ? o[field].filter(v => v !== value) : [...o[field], value] }
+        : o
+      )
+    }))
+  }
+
   // Step 1 validation
   const step1Valid =
     !!form.insuranceType &&
@@ -267,7 +287,7 @@ export default function AddSubmissionModal({ customer, onClose, onSubmit }) {
   // Step 3 validation
   const step3Valid = yesNoFields.every(f => form[f] !== null)
 
-  const inputClass = "w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
+  const inputClass = "w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 placeholder:text-gray-400"
 
   const stepLabels = ['Submission Details', 'Company Information', 'Security & Risk', 'Review']
 
@@ -275,7 +295,7 @@ export default function AddSubmissionModal({ customer, onClose, onSubmit }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
 
-      <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] flex flex-col">
+      <div className={`relative bg-white rounded-xl shadow-2xl w-full mx-4 max-h-[90vh] flex flex-col transition-all duration-200 ${form.optionals.length > 0 && step === 1 ? (form.optionals.length >= 2 ? 'max-w-5xl' : 'max-w-4xl') : 'max-w-2xl'}`}>
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
@@ -344,61 +364,127 @@ export default function AddSubmissionModal({ customer, onClose, onSubmit }) {
                 </Field>
               </div>
 
-              <Field label="Carriers to Submit To">
-                <div className="border border-gray-200 rounded-lg p-1">
-                  <div>
-                    {CARRIERS.map((c) => (
-                      <label key={c} className="flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 cursor-pointer rounded">
-                        <input
-                          type="checkbox"
-                          checked={form.carriers.includes(c)}
-                          onChange={() => toggleCheck('carriers', c)}
-                          className="w-4 h-4 accent-gray-800 rounded"
-                        />
-                        <span className="text-sm text-gray-700">{c}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              </Field>
-
-              <div className="space-y-4">
-                <div className="w-1/2 pr-2">
-                  <Field label="Limit">
-                    <CurrencyInput value={form.limit} onChange={v => set('limit', v)} placeholder="e.g. $5,000,000" className={inputClass} />
-                  </Field>
-                </div>
-                <div className="w-1/2 pr-2">
-                  <Field label="Retention">
-                    <CurrencyInput value={form.retention} onChange={v => set('retention', v)} placeholder="e.g. $10,000" className={inputClass} />
-                  </Field>
-                </div>
-              </div>
-
-              {true && (
-                <Field label="Coverages">
-                  <div className="border border-gray-200 rounded-lg p-1">
-                    <div>
-                      {COVERAGES.map((c) => (
+              <div className="flex gap-5 items-start">
+                {/* Option 1 — main */}
+                <div className={`flex-1 space-y-4 ${form.optionals.length > 0 ? 'border border-dashed border-gray-300 rounded-lg p-4' : ''}`}>
+                  {form.optionals.length > 0 && <p className="text-sm font-medium text-gray-700">Option 1</p>}
+                  <Field label="Carriers">
+                    <div className="border border-gray-200 rounded-lg p-1">
+                      {CARRIERS.map((c) => (
                         <label key={c} className="flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 cursor-pointer rounded">
-                          <input
-                            type="checkbox"
-                            checked={form.coverages.includes(c)}
-                            onChange={() => toggleCheck('coverages', c)}
-                            className="w-4 h-4 accent-gray-800 rounded"
-                          />
+                          <input type="checkbox" checked={form.carriers.includes(c)} onChange={() => toggleCheck('carriers', c)} className="w-4 h-4 accent-gray-800 rounded" />
                           <span className="text-sm text-gray-700">{c}</span>
                         </label>
                       ))}
                     </div>
+                  </Field>
+                  <div className="space-y-4">
+                    <div className="w-1/2 pr-2">
+                      <Field label="Limit">
+                        <CurrencyInput value={form.limit} onChange={v => set('limit', v)} placeholder="$5,000,000" className={inputClass} />
+                      </Field>
+                    </div>
+                    <div className="w-1/2 pr-2">
+                      <Field label="Deductible">
+                        <CurrencyInput value={form.retention} onChange={v => set('retention', v)} placeholder="$10,000" className={inputClass} />
+                      </Field>
+                    </div>
+                    <div className="w-1/2 pr-2">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5 whitespace-nowrap">Waiting Period (hours)</label>
+                        <input type="number" min="0" value={form.waitingPeriod} onChange={e => set('waitingPeriod', e.target.value)} placeholder="8" className={inputClass} />
+                      </div>
+                    </div>
+                    <div className="w-1/2 pr-2">
+                      <Field label="Prior Acts Date">
+                        <input type="date" value={form.priorActsDate} onChange={e => set('priorActsDate', e.target.value)} className={inputClass} />
+                      </Field>
+                    </div>
+                    <div className="w-1/2 pr-2">
+                      <Field label="Target Premium">
+                        <CurrencyInput value={form.targetPremium} onChange={v => set('targetPremium', v)} placeholder="$12,000" className={inputClass} />
+                      </Field>
+                    </div>
                   </div>
-                </Field>
-              )}
+                  {form.carriers.length > 0 && (
+                    <Field label="Coverages">
+                      <div className="border border-gray-200 rounded-lg p-1">
+                        {COVERAGES.map((c) => (
+                          <label key={c} className="flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 cursor-pointer rounded">
+                            <input type="checkbox" checked={form.coverages.includes(c)} onChange={() => toggleCheck('coverages', c)} className="w-4 h-4 accent-gray-800 rounded" />
+                            <span className="text-sm text-gray-700">{c}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </Field>
+                  )}
+                </div>
 
-              {!showOptional && (
+                {/* Option 2 and Option 3 */}
+                {form.optionals.map((opt, i) => (
+                  <div key={i} className="flex-1 border border-dashed border-gray-300 rounded-lg p-4 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium text-gray-700">Option {i + 2}</p>
+                      <button type="button" onClick={() => removeOptional(i)} className="text-xs text-gray-400 hover:text-gray-600 transition-colors">Remove</button>
+                    </div>
+                    <Field label="Carriers">
+                      <div className="border border-gray-200 rounded-lg p-1">
+                        {CARRIERS.map((c) => (
+                          <label key={c} className="flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 cursor-pointer rounded">
+                            <input type="checkbox" checked={opt.carriers.includes(c)} onChange={() => toggleOptionalCheck(i, 'carriers', c)} className="w-4 h-4 accent-gray-800 rounded" />
+                            <span className="text-sm text-gray-700">{c}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </Field>
+                    <div className="space-y-4">
+                      <div className="w-1/2 pr-2">
+                        <Field label="Limit">
+                          <CurrencyInput value={opt.limit} onChange={v => setOptional(i, 'limit', v)} placeholder="$5,000,000" className={inputClass} />
+                        </Field>
+                      </div>
+                      <div className="w-1/2 pr-2">
+                        <Field label="Deductible">
+                          <CurrencyInput value={opt.retention} onChange={v => setOptional(i, 'retention', v)} placeholder="$10,000" className={inputClass} />
+                        </Field>
+                      </div>
+                      <div className="w-1/2 pr-2">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1.5 whitespace-nowrap">Waiting Period (hours)</label>
+                          <input type="number" min="0" value={opt.waitingPeriod} onChange={e => setOptional(i, 'waitingPeriod', e.target.value)} placeholder="8" className={inputClass} />
+                        </div>
+                      </div>
+                      <div className="w-1/2 pr-2">
+                        <Field label="Prior Acts Date">
+                          <input type="date" value={opt.priorActsDate} onChange={e => setOptional(i, 'priorActsDate', e.target.value)} className={inputClass} />
+                        </Field>
+                      </div>
+                      <div className="w-1/2 pr-2">
+                        <Field label="Target Premium">
+                          <CurrencyInput value={opt.targetPremium} onChange={v => setOptional(i, 'targetPremium', v)} placeholder="$12,000" className={inputClass} />
+                        </Field>
+                      </div>
+                    </div>
+                    {opt.carriers.length > 0 && (
+                      <Field label="Coverages">
+                        <div className="border border-gray-200 rounded-lg p-1">
+                          {COVERAGES.map((c) => (
+                            <label key={c} className="flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 cursor-pointer rounded">
+                              <input type="checkbox" checked={opt.coverages.includes(c)} onChange={() => toggleOptionalCheck(i, 'coverages', c)} className="w-4 h-4 accent-gray-800 rounded" />
+                              <span className="text-sm text-gray-700">{c}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </Field>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {form.optionals.length < 2 && (
                 <button
                   type="button"
-                  onClick={() => setShowOptional(true)}
+                  onClick={addOptional}
                   className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 transition-colors"
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -406,67 +492,6 @@ export default function AddSubmissionModal({ customer, onClose, onSubmit }) {
                   </svg>
                   Add Optional Request
                 </button>
-              )}
-
-              {showOptional && (
-                <div className="border border-dashed border-gray-300 rounded-lg p-4 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-gray-700">Optional Request</p>
-                    <button
-                      type="button"
-                      onClick={() => { setShowOptional(false); set('optionalCarriers', []); set('optionalLimit', ''); set('optionalRetention', ''); set('optionalCoverages', []) }}
-                      className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                  <Field label="Carriers">
-                    <div className="border border-gray-200 rounded-lg p-1">
-                      <div>
-                        {CARRIERS.map((c) => (
-                          <label key={c} className="flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 cursor-pointer rounded">
-                            <input
-                              type="checkbox"
-                              checked={form.optionalCarriers.includes(c)}
-                              onChange={() => toggleCheck('optionalCarriers', c)}
-                              className="w-4 h-4 accent-gray-800 rounded"
-                            />
-                            <span className="text-sm text-gray-700">{c}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                  </Field>
-                  <div className="space-y-4">
-                    <div className="w-1/2 pr-2">
-                      <Field label="Limit">
-                        <CurrencyInput value={form.optionalLimit} onChange={v => set('optionalLimit', v)} placeholder="e.g. $5,000,000" className={inputClass} />
-                      </Field>
-                    </div>
-                    <div className="w-1/2 pr-2">
-                      <Field label="Retention">
-                        <CurrencyInput value={form.optionalRetention} onChange={v => set('optionalRetention', v)} placeholder="e.g. $10,000" className={inputClass} />
-                      </Field>
-                    </div>
-                  </div>
-                  <Field label="Coverages">
-                    <div className="border border-gray-200 rounded-lg p-1">
-                      <div>
-                        {COVERAGES.map((c) => (
-                          <label key={c} className="flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 cursor-pointer rounded">
-                            <input
-                              type="checkbox"
-                              checked={form.optionalCoverages.includes(c)}
-                              onChange={() => toggleCheck('optionalCoverages', c)}
-                              className="w-4 h-4 accent-gray-800 rounded"
-                            />
-                            <span className="text-sm text-gray-700">{c}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                  </Field>
-                </div>
               )}
             </>}
           </div>
@@ -480,16 +505,16 @@ export default function AddSubmissionModal({ customer, onClose, onSubmit }) {
                 <input type="text" value={form.companyName} onChange={e => set('companyName', e.target.value)} className={inputClass} />
               </Field>
               <Field label="Year Established">
-                <input type="text" value={form.yearEstablished} onChange={e => set('yearEstablished', e.target.value)} placeholder="e.g. 2005" className={inputClass} />
+                <input type="text" value={form.yearEstablished} onChange={e => set('yearEstablished', e.target.value)} placeholder="2005" className={inputClass} />
               </Field>
             </div>
 
             <Field label="Address">
-              <input type="text" value={form.address} onChange={e => set('address', e.target.value)} placeholder="e.g. 123 Main St, City, ST 00000" className={inputClass} />
+              <input type="text" value={form.address} onChange={e => set('address', e.target.value)} placeholder="123 Main St, City, ST 00000" className={inputClass} />
             </Field>
 
             <Field label="Website URL">
-              <input type="text" value={form.websiteUrl} onChange={e => set('websiteUrl', e.target.value)} placeholder="e.g. www.company.com" className={inputClass} />
+              <input type="text" value={form.websiteUrl} onChange={e => set('websiteUrl', e.target.value)} placeholder="www.company.com" className={inputClass} />
             </Field>
 
             <div className="grid grid-cols-2 gap-4">
@@ -503,7 +528,7 @@ export default function AddSubmissionModal({ customer, onClose, onSubmit }) {
 
             <div className="grid grid-cols-2 gap-4">
               <Field label="Revenue (TTM)">
-                <CurrencyInput value={form.revenue} onChange={v => set('revenue', v)} placeholder="e.g. $10,000,000" className={inputClass} />
+                <CurrencyInput value={form.revenue} onChange={v => set('revenue', v)} placeholder="$10,000,000" className={inputClass} />
               </Field>
               <Field label="Employee Count">
                 <input type="text" value={form.employeeCount} onChange={e => set('employeeCount', e.target.value)} className={inputClass} />
@@ -558,10 +583,22 @@ export default function AddSubmissionModal({ customer, onClose, onSubmit }) {
               <div className="bg-gray-50 rounded-lg px-4 py-1">
                 <ReviewRow label="Insurance Type" value={form.insuranceType} />
                 <ReviewRow label="Effective Date" value={form.effectiveDate} />
-                <ReviewRow label="Limit" value={form.limit} />
-                <ReviewRow label="Retention" value={form.retention} />
-                <ReviewRow label="Carriers" value={form.carriers.join(', ')} />
-                <ReviewRow label="Coverages" value={form.coverages.join(', ')} />
+                <ReviewRow label={form.optionals.length > 0 ? 'Option 1 — Limit' : 'Limit'} value={form.limit} />
+                <ReviewRow label={form.optionals.length > 0 ? 'Option 1 — Deductible' : 'Deductible'} value={form.retention} />
+                <ReviewRow label={form.optionals.length > 0 ? 'Option 1 — Waiting Period' : 'Waiting Period (hours)'} value={form.waitingPeriod} />
+                <ReviewRow label={form.optionals.length > 0 ? 'Option 1 — Prior Acts Date' : 'Prior Acts Date'} value={form.priorActsDate} />
+                <ReviewRow label={form.optionals.length > 0 ? 'Option 1 — Target Premium' : 'Target Premium'} value={form.targetPremium} />
+                <ReviewRow label={form.optionals.length > 0 ? 'Option 1 — Carriers' : 'Carriers'} value={form.carriers.join(', ')} />
+                <ReviewRow label={form.optionals.length > 0 ? 'Option 1 — Coverages' : 'Coverages'} value={form.coverages.join(', ')} />
+                {form.optionals.map((opt, i) => <>
+                  <ReviewRow key={`opt${i}limit`} label={`Option ${i + 2} — Limit`} value={opt.limit} />
+                  <ReviewRow key={`opt${i}ret`} label={`Option ${i + 2} — Deductible`} value={opt.retention} />
+                  <ReviewRow key={`opt${i}wp`} label={`Option ${i + 2} — Waiting Period`} value={opt.waitingPeriod} />
+                  <ReviewRow key={`opt${i}pad`} label={`Option ${i + 2} — Prior Acts Date`} value={opt.priorActsDate} />
+                  <ReviewRow key={`opt${i}tp`} label={`Option ${i + 2} — Target Premium`} value={opt.targetPremium} />
+                  <ReviewRow key={`opt${i}car`} label={`Option ${i + 2} — Carriers`} value={opt.carriers.join(', ')} />
+                  <ReviewRow key={`opt${i}cov`} label={`Option ${i + 2} — Coverages`} value={opt.coverages.join(', ')} />
+                </>)}
               </div>
             </div>
 
@@ -601,10 +638,6 @@ export default function AddSubmissionModal({ customer, onClose, onSubmit }) {
               </div>
             </div>
 
-            <Field label="Target Premium">
-              <CurrencyInput value={form.targetPremium} onChange={v => set('targetPremium', v)} placeholder="e.g. $12,000" className={inputClass} />
-            </Field>
-
             <Field label="Message">
               <textarea
                 rows={4}
@@ -628,7 +661,7 @@ export default function AddSubmissionModal({ customer, onClose, onSubmit }) {
           </button>
           <button
             type="button"
-            disabled={step === 1 ? !step1Valid : step === 2 ? !step2Valid : step === 3 ? !step3Valid : !form.targetPremium}
+            disabled={step === 1 ? !step1Valid : step === 2 ? !step2Valid : step === 3 ? !step3Valid : false}
             onClick={step < 4 ? () => setStep(s => s + 1) : () => { onSubmit(form); onClose() }}
             className="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >

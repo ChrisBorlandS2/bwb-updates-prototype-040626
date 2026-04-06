@@ -128,7 +128,7 @@ export default function QuoteDetailModal({ quote, onClose, onBindRequested, bind
                 <div className="bg-gray-50 rounded-lg px-4 py-1">
                   <DetailRow label="Premium" value={quote.premium} />
                   <DetailRow label="Coverage Limit" value={quote.coverageLimit} />
-                  <DetailRow label="Retention" value={quote.retention} />
+                  <DetailRow label="Deductible" value={quote.retention} />
                 </div>
               </div>
 

@@ -24,7 +24,10 @@ export default function CompareQuotes({ customer, onBack, onClose }) {
   const selected = [...quotes.returnedQuotes].sort((a, b) => {
     const aReq = bindRequestedIds.has(a.id) ? 0 : 1
     const bReq = bindRequestedIds.has(b.id) ? 0 : 1
-    return aReq - bReq
+    if (aReq !== bReq) return aReq - bReq
+    const aP = Number((a.premium || '').replace(/[^0-9]/g, ''))
+    const bP = Number((b.premium || '').replace(/[^0-9]/g, ''))
+    return aP - bP
   })
 
   function handleBindRequested(quoteId) {
@@ -133,7 +136,7 @@ export default function CompareQuotes({ customer, onBack, onClose }) {
             <p className="text-sm font-semibold text-gray-800 mb-2">Quotes</p>
             <div className="border border-gray-200 rounded-lg overflow-hidden">
               <div className="grid grid-cols-4 gap-1 px-3 py-2 bg-gray-50 border-b border-gray-200">
-                {['', 'Carrier', 'Cov. Limit', 'Retention', 'Premium'].slice(0,4).map(h => (
+                {['', 'Carrier', 'Cov. Limit', 'Deductible', 'Premium'].slice(0,4).map(h => (
                   <p key={h} className="text-xs font-medium text-gray-500">{h}</p>
                 ))}
               </div>
@@ -219,7 +222,7 @@ export default function CompareQuotes({ customer, onBack, onClose }) {
                         <div className="space-y-1.5">
                           {[
                             { label: 'Coverage Limit', value: q.coverageLimit },
-                            { label: 'Retention', value: q.retention },
+                            { label: 'Deductible', value: q.retention },
                             { label: 'Claim Limit', value: '$2,000,000' },
                             { label: 'Each occurrence limit', value: '$2,000,000' },
                             { label: 'Aggregate Limit', value: '$2,000,000' },

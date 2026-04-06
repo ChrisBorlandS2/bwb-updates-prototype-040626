@@ -110,7 +110,7 @@ export default function SubmissionDetailModal({ submission, customer, onClose })
                 <ReviewRow label="Insurance Type" value={submission.type} />
                 <ReviewRow label="Effective Date" value={submission.effectiveDate || submission.year} />
                 <ReviewRow label="Limit" value={submission.limit} />
-                <ReviewRow label="Retention" value={submission.retention || '—'} />
+                <ReviewRow label="Deductible" value={submission.retention || '—'} />
                 <ReviewRow label="Target Premium" value={submission.targetPremium || '—'} />
                 <ReviewRow label="Carriers" value={submission.carriers?.join(', ') || '—'} />
                 <ReviewRow label="Coverages" value={submission.coverages?.join(', ') || '—'} />

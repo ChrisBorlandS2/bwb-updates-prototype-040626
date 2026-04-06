@@ -326,7 +326,7 @@ export default function CustomerPanel({ customer, onClose, hideHeader, hideSubmi
                 <p className="text-sm text-gray-800">{quotes.quoteParams.coverageLimit || '$'}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-500 mb-0.5">Retention</p>
+                <p className="text-xs text-gray-500 mb-0.5">Deductible</p>
                 <p className="text-sm text-gray-800">{quotes.quoteParams.retention || '—'}</p>
               </div>
               <div>
@@ -373,7 +373,7 @@ export default function CustomerPanel({ customer, onClose, hideHeader, hideSubmi
                     <div className="grid grid-cols-4 gap-2 px-3 py-2 bg-gray-50 border-b border-gray-100">
                       <p className="text-xs font-medium text-gray-500">Carrier</p>
                       <p className="text-xs font-medium text-gray-500">Coverage Limit</p>
-                      <p className="text-xs font-medium text-gray-500">Retention</p>
+                      <p className="text-xs font-medium text-gray-500">Deductible</p>
                       <p className="text-xs font-medium text-gray-500">Base Premium</p>
                     </div>
                     {quotes.returnedQuotes.map(q => (
