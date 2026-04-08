@@ -98,6 +98,19 @@ export default function CustomerPanel({ customer, onClose, hideHeader, hideSubmi
       limit: data.limit || '—',
       status: 'Requested',
       requestedDate: new Date().toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' }),
+      carriers: data.carriers || [],
+      retention: data.retention || '',
+      targetPremium: data.targetPremium || '',
+      coverages: data.coverages || [],
+      insuredContact: data.insuredContact || '',
+      insuredEmail: data.insuredEmail || '',
+      revenue: data.revenue || '',
+      employeeCount: data.employeeCount || '',
+      mfaEnforced: data.mfaEnforced,
+      offlineBackups: data.offlineBackups,
+      itManagedExternal: data.itManagedExternal,
+      dualAuthFunds: data.dualAuthFunds,
+      cyberIncidents: data.cyberIncidents,
     }
     setSubmissions(prev => [newEntry, ...prev])
     onSubmissionAdded?.(newEntry)

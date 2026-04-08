@@ -209,7 +209,7 @@ export default function AddSubmissionModal({ customer, onClose, onSubmit }) {
     retention: '',
     waitingPeriod: '',
     priorActsDate: '',
-    coverages: [],
+    coverages: [...COVERAGES],
     optionals: [],
     companyName: customer?.company || '',
     yearEstablished: '',
@@ -247,7 +247,7 @@ export default function AddSubmissionModal({ customer, onClose, onSubmit }) {
   }
 
   function addOptional() {
-    setForm(f => ({ ...f, optionals: [...f.optionals, { carriers: [...CARRIERS], limit: '', retention: '', waitingPeriod: '', priorActsDate: '', targetPremium: '', coverages: [] }] }))
+    setForm(f => ({ ...f, optionals: [...f.optionals, { carriers: [...CARRIERS], limit: '', retention: '', waitingPeriod: '', priorActsDate: '', targetPremium: '', coverages: [...COVERAGES] }] }))
   }
 
   function removeOptional(index) {
