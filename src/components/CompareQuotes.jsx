@@ -34,6 +34,10 @@ export default function CompareQuotes({ customer, onBack, onClose }) {
     setBindRequestedIds(prev => new Set([...prev, quoteId]))
   }
 
+  function handleWithdrawBind(quoteId) {
+    setBindRequestedIds(prev => { const next = new Set(prev); next.delete(quoteId); return next })
+  }
+
   return (
     <div className="flex flex-1 flex-col overflow-hidden bg-white border-l border-gray-200">
       {/* Header bar */}
@@ -262,6 +266,7 @@ export default function CompareQuotes({ customer, onBack, onClose }) {
           quote={selectedQuote}
           onClose={() => setSelectedQuote(null)}
           onBindRequested={() => handleBindRequested(selectedQuote.id)}
+          onWithdrawBind={() => handleWithdrawBind(selectedQuote.id)}
           bindRequested={bindRequestedIds.has(selectedQuote.id)}
         />
       )}

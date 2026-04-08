@@ -49,7 +49,7 @@ function Avatar({ name }) {
   )
 }
 
-export default function QuoteDetailModal({ quote, onClose, onBindRequested, bindRequested = false }) {
+export default function QuoteDetailModal({ quote, onClose, onBindRequested, onWithdrawBind, bindRequested = false }) {
   const [messages, setMessages] = useState(MOCK_MESSAGES.map(m => ({
     ...m,
     sender: m.role === 'carrier' ? quote.carrier : m.sender,
@@ -62,6 +62,14 @@ export default function QuoteDetailModal({ quote, onClose, onBindRequested, bind
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
+  function now() {
+    return new Date().toLocaleString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit', hour: 'numeric', minute: '2-digit' })
+  }
+
+  function pushEvent(text) {
+    setMessages(prev => [...prev, { id: `e${Date.now()}`, role: 'event', text, timestamp: now() }])
+  }
+
   function sendMessage() {
     if (!newMessage.trim()) return
     setMessages(prev => [...prev, {
@@ -69,7 +77,7 @@ export default function QuoteDetailModal({ quote, onClose, onBindRequested, bind
       sender: 'Bill Smithers',
       role: 'broker',
       text: newMessage.trim(),
-      timestamp: new Date().toLocaleString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit', hour: 'numeric', minute: '2-digit' }),
+      timestamp: now(),
     }])
     setNewMessage('')
   }
@@ -97,8 +105,17 @@ export default function QuoteDetailModal({ quote, onClose, onBindRequested, bind
             <p className="text-xs text-gray-400 mt-0.5">Quote Ran on {quote.quoteRanOn}</p>
           </div>
           <div className="flex items-center gap-3">
+            {readyToBind && (
+              <button
+                onClick={() => { setReadyToBind(false); onWithdrawBind?.(); pushEvent('Bind request withdrawn by broker.') }}
+                className="text-sm text-gray-400 hover:text-red-600 transition-colors"
+              >
+                Withdraw
+              </button>
+            )}
             <button
-              onClick={() => { setReadyToBind(true); onBindRequested?.() }}
+              onClick={() => { setReadyToBind(true); onBindRequested?.(); pushEvent('Bind request submitted by broker.') }}
+              disabled={readyToBind}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 readyToBind
                   ? 'bg-gray-900 text-white cursor-default'
@@ -158,7 +175,14 @@ export default function QuoteDetailModal({ quote, onClose, onBindRequested, bind
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Messages</p>
 
               <div className="flex-1 space-y-4 mb-4 overflow-y-auto">
-                {messages.map(msg => (
+                {messages.map(msg => msg.role === 'event' ? (
+                  <div key={msg.id} className="flex items-center gap-2">
+                    <div className="flex-1 h-px bg-gray-200" />
+                    <span className="text-xs text-gray-400 whitespace-nowrap">{msg.text}</span>
+                    <span className="text-xs text-gray-300 whitespace-nowrap">{msg.timestamp}</span>
+                    <div className="flex-1 h-px bg-gray-200" />
+                  </div>
+                ) : (
                   <div key={msg.id} className={`flex gap-2.5 ${msg.role === 'broker' ? 'flex-row-reverse' : ''}`}>
                     <Avatar name={msg.sender} />
                     <div className={`flex flex-col ${msg.role === 'broker' ? 'items-end' : 'items-start'} max-w-[75%]`}>
