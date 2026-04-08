@@ -49,8 +49,9 @@ export default function SubmissionDetailModal({ submission, customer, onClose })
   const submissionCarriers = submission.carriers?.length ? submission.carriers : DEFAULT_CARRIERS
   const [messages, setMessages] = useState(submission.messages || MOCK_MESSAGES)
   const [newMessage, setNewMessage] = useState('')
+  const [withdrawnCarriers, setWithdrawnCarriers] = useState([])
   const [showWithdrawModal, setShowWithdrawModal] = useState(false)
-  const [withdrawCarriers, setWithdrawCarriers] = useState(submissionCarriers)
+  const [withdrawCarriers, setWithdrawCarriers] = useState([])
   const messagesEndRef = useRef(null)
 
   useEffect(() => {
@@ -83,8 +84,16 @@ export default function SubmissionDetailModal({ submission, customer, onClose })
     )
   }
 
+  const remainingCarriers = submissionCarriers.filter(c => !withdrawnCarriers.includes(c))
+
+  function openWithdrawModal() {
+    setWithdrawCarriers([...remainingCarriers])
+    setShowWithdrawModal(true)
+  }
+
   function confirmWithdraw() {
-    const label = withdrawCarriers.length === submissionCarriers.length
+    setWithdrawnCarriers(prev => [...prev, ...withdrawCarriers])
+    const label = withdrawCarriers.length === remainingCarriers.length
       ? 'all carriers'
       : withdrawCarriers.join(', ')
     pushEvent(`Submission withdrawn from ${label} by broker.`)
@@ -119,9 +128,9 @@ export default function SubmissionDetailModal({ submission, customer, onClose })
             </p>
           </div>
           <div className="flex items-center gap-3">
-            {submission.status === 'Requested' && (
+            {submission.status === 'Requested' && remainingCarriers.length > 0 && (
               <button
-                onClick={() => setShowWithdrawModal(true)}
+                onClick={openWithdrawModal}
                 className="text-sm text-gray-400 hover:text-red-600 transition-colors"
               >
                 Withdraw Request
@@ -244,13 +253,13 @@ export default function SubmissionDetailModal({ submission, customer, onClose })
       {showWithdrawModal && (
         <div className="absolute inset-0 z-10 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/30 rounded-xl" onClick={() => setShowWithdrawModal(false)} />
-          <div className="relative bg-white rounded-xl shadow-xl w-80 mx-4 p-5 space-y-4">
+          <div className="relative bg-white rounded-xl shadow-xl w-96 mx-4 p-5 space-y-4">
             <div>
               <h3 className="text-base font-semibold text-gray-900">Withdraw Request</h3>
               <p className="text-xs text-gray-500 mt-1">Select the carriers to withdraw this request from.</p>
             </div>
             <div className="border border-gray-200 rounded-lg p-1">
-              {submissionCarriers.map(carrier => (
+              {remainingCarriers.map(carrier => (
                 <label key={carrier} className="flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 cursor-pointer rounded">
                   <input
                     type="checkbox"
