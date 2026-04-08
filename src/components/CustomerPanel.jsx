@@ -12,6 +12,7 @@ const submissionStatusConfig = {
   'Bind':       { bg: '#d1d5db', text: '#1f2937' },
   'Binding':    { bg: '#4b5563', text: '#f9fafb' },
   'In Force':   { bg: '#1f2937', text: '#f9fafb' },
+  'Archived':   { bg: '#e5e7eb', text: '#6b7280' },
 }
 
 function SubmissionStatusBadge({ status }) {
@@ -473,11 +474,15 @@ export default function CustomerPanel({ customer, onClose, hideHeader, hideSubmi
         />
       )}
 
-      {selectedSubmission && selectedSubmission.status === 'Requested' && (
+      {selectedSubmission && (selectedSubmission.status === 'Requested' || selectedSubmission.status === 'Archived') && (
         <SubmissionDetailModal
           submission={selectedSubmission}
           customer={customer}
           onClose={() => setSelectedSubmission(null)}
+          onStatusChange={(newStatus) => {
+            setSubmissions(prev => prev.map(s => s.id === selectedSubmission.id ? { ...s, status: newStatus } : s))
+            setSelectedSubmission(prev => ({ ...prev, status: newStatus }))
+          }}
         />
       )}
 

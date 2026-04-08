@@ -45,7 +45,7 @@ const MOCK_MESSAGES = [
 
 const DEFAULT_CARRIERS = ['RLI', 'Berkley', 'Mosaic', 'Ryan']
 
-export default function SubmissionDetailModal({ submission, customer, onClose }) {
+export default function SubmissionDetailModal({ submission, customer, onClose, onStatusChange }) {
   const submissionCarriers = submission.carriers?.length ? submission.carriers : DEFAULT_CARRIERS
   const [messages, setMessages] = useState(submission.messages || MOCK_MESSAGES)
   const [newMessage, setNewMessage] = useState('')
@@ -92,11 +92,15 @@ export default function SubmissionDetailModal({ submission, customer, onClose })
   }
 
   function confirmWithdraw() {
-    setWithdrawnCarriers(prev => [...prev, ...withdrawCarriers])
+    const allWithdrawnAfter = [...withdrawnCarriers, ...withdrawCarriers]
+    setWithdrawnCarriers(allWithdrawnAfter)
     const label = withdrawCarriers.length === remainingCarriers.length
       ? 'all carriers'
       : withdrawCarriers.join(', ')
     pushEvent(`Submission withdrawn from ${label} by broker.`)
+    if (allWithdrawnAfter.length >= submissionCarriers.length) {
+      onStatusChange?.('Archived')
+    }
     setShowWithdrawModal(false)
   }
 
