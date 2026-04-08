@@ -43,11 +43,14 @@ const MOCK_MESSAGES = [
   },
 ]
 
+const DEFAULT_CARRIERS = ['RLI', 'Berkley', 'Mosaic', 'Ryan']
+
 export default function SubmissionDetailModal({ submission, customer, onClose }) {
+  const submissionCarriers = submission.carriers?.length ? submission.carriers : DEFAULT_CARRIERS
   const [messages, setMessages] = useState(submission.messages || MOCK_MESSAGES)
   const [newMessage, setNewMessage] = useState('')
   const [showWithdrawModal, setShowWithdrawModal] = useState(false)
-  const [withdrawCarriers, setWithdrawCarriers] = useState(submission.carriers || [])
+  const [withdrawCarriers, setWithdrawCarriers] = useState(submissionCarriers)
   const messagesEndRef = useRef(null)
 
   useEffect(() => {
@@ -81,7 +84,7 @@ export default function SubmissionDetailModal({ submission, customer, onClose })
   }
 
   function confirmWithdraw() {
-    const label = withdrawCarriers.length === (submission.carriers || []).length
+    const label = withdrawCarriers.length === submissionCarriers.length
       ? 'all carriers'
       : withdrawCarriers.join(', ')
     pushEvent(`Submission withdrawn from ${label} by broker.`)
@@ -247,7 +250,7 @@ export default function SubmissionDetailModal({ submission, customer, onClose })
               <p className="text-xs text-gray-500 mt-1">Select the carriers to withdraw this request from.</p>
             </div>
             <div className="border border-gray-200 rounded-lg p-1">
-              {(submission.carriers || []).map(carrier => (
+              {submissionCarriers.map(carrier => (
                 <label key={carrier} className="flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 cursor-pointer rounded">
                   <input
                     type="checkbox"
